@@ -15,4 +15,14 @@ class BetRequest extends FormRequest
             'total_amount' => 'required|int',
         ];
     }
+
+    public function messages()
+    {
+        return [
+            'user_id.exists' => 'User not found',
+            'event_id.exists' => 'Event with this ID does not found',
+            'prediction.string' => 'Prediction must be a string',
+            'total_amount.int' => 'Total amount must be an integer',
+        ];
+    }
 }

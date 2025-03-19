@@ -2,35 +2,70 @@
 
 namespace App\Services;
 
-use App\Models\Event;
+use App\DTO\FootballMatchDTO;
+use App\Repositories\EventRepository;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class EventService
 {
     public function __construct(
-        protected SportsApiService $sportsApiService)
-    {
+        private readonly SportApiClient $sportsApiClient,
+        private readonly EventRepository $eventRepository
+    ) {
     }
 
-    public function createEvents(array $eventsData)
+    /**
+     * Add football matches to the database.
+     *
+     * This method gets the current football matches for the next day
+     * from an external sportsAPIClient, mapping the raw data to a DTO, and saved the events to the database
+     * If the required data is missing in the response, an exception is thrown.
+     *
+     * @return array An array of created events
+     *
+     * @throws \Exception
+     */
+    public function addFootballMatches(): array
     {
         $createdEvents = [];
+        $date = Carbon::now()->addDay()->format('Y-m-d');
+        $eventsData = $this->sportsApiClient->getCurrentFootballMatches($date);
 
         foreach ($eventsData as $event) {
             if (isset($event['teams']['home']['name'], $event['teams']['away']['name'], $event['fixture']['date'])) {
-                $eventDate = Carbon::parse($event['fixture']['date']);
-                $eventData = [
-                    'title' => $event['teams']['home']['name'] . ' vs ' . $event['teams']['away']['name'],
-                    'type_of_sports' => 'Football',
-                    'participants' => $event['teams']['home']['name'] . ' vs ' . $event['teams']['away']['name'],
-                    'date' => $eventDate->format('Y-m-d H:i'),
-                ];
+                $dto = FootballMatchDTO::fromArray($event);
 
-                $createdEvents[] = Event::create($eventData);
+                if ($this->eventRepository->eventExists($dto)) {
+                    throw new \Exception('Event already exists in the database: ' . $dto->title, 409);
+                }
+
+                $eventData = $dto->toArray();
+                $createdEvents[] = $this->eventRepository->create($eventData);
+            } else {
+                throw new \Exception('Not enough data for mapping', 422);
             }
         }
 
         return $createdEvents;
     }
+
+//    public function getResults()
+//    {
+//        $eventsWithoutResults = Event::whereNull('result')->get();
+//        $eventIds = $eventsWithoutResults->pluck('event_id')->toArray();
+//        $results = $this->sportsApiClient->getResultsFootballMatches($eventIds);
+//
+//        if (empty($results)) {
+//            return [];
+//        }
+//
+//        foreach ($results as $result) {
+//            $event = Event::where('event_id', $result['id'])->first();
+//            if ($event) {
+//                $event->update(['result' => $result]);
+//            }
+//        }
+//
+//        return $results;
+//    }
 }

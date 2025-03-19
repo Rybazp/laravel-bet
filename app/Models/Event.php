@@ -9,6 +9,7 @@ use MongoDB\Laravel\Eloquent\Model;
  * @method static create(array $array)
  * @method static where(string $string, $null)
  * @method static find($event_id)
+ * @method static whereNull(string $string)
  */
 class Event extends Model
 {

@@ -44,7 +44,7 @@ class BetController extends Controller
     {
         try {
             $updatedBets = $this->betService->checkBet();
-            $betResource = BetResource::make($updatedBets);
+            $betResource = BetResource::collection($updatedBets);
 
             return response()->json($betResource, Response::HTTP_OK);
         } catch (\Exception $e) {

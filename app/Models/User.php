@@ -24,7 +24,6 @@ class User extends Model
         'name',
         'balance',
         'true_prediction',
-        'total_quantity_prediction',
         'total_win'
     ];
 

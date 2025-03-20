@@ -17,7 +17,6 @@ class BetResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at->toDateTimeString(),
             'total_win' => $this->total_win,
-
         ];
     }
 }

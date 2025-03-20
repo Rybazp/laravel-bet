@@ -7,7 +7,6 @@ use App\Models\Bet;
 use App\Models\Event;
 use App\Models\User;
 use App\Repositories\BetRepository;
-use MongoDB\Collection;
 
 class BetService
 {
@@ -45,9 +44,9 @@ class BetService
     }
 
     /**
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function checkBet(): Collection
+    public function checkBet(): \Illuminate\Database\Eloquent\Collection
     {
         $updatedBets = Bet::where('status', BetStatus::Pending->value)->get();
 
@@ -62,18 +61,20 @@ class BetService
                 continue;
             }
 
-            $eventResult = $event->result;
-
             if (
-                ($bet->prediction == 'home' && $eventResult == 'home') ||
-                ($bet->prediction == 'away' && $eventResult == 'away') ||
-                ($bet->prediction == 'draw' && $eventResult == 'draw')
+                ($bet->prediction == 'home' && $event->result['home'] > $event->result['away']) ||
+                ($bet->prediction == 'away' && $event->result['away'] > $event->result['home']) ||
+                ($bet->prediction == 'draw' && $event->result['home'] == $event->result['away'])
             ) {
                 $bet->status = BetStatus::Win->value;
+                $bet->total_win = $bet->total_amount * 2;
                 $bet->save();
 
-                $user = $bet->user;
-                $user->balance += $bet->amount * 2;
+                $user = User::find($bet->user_id);
+                $winAmount = $bet['total_amount']*2;
+                $user->balance = $user->balance + $winAmount;
+                $user->true_prediction += 1;
+                $user->total_win = $user->total_win + $winAmount;
                 $user->save();
             } else {
                 $bet->status = BetStatus::Lose->value;

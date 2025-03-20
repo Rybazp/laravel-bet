@@ -49,4 +49,18 @@ class EventController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    public function updateResults()
+    {
+        try {
+            $result = $this->eventService->updateFootballMatchesResults();
+            $resourceCollection = EventResource::collection($result);
+
+            return response()->json($resourceCollection, Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

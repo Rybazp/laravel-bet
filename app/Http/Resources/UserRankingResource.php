@@ -18,7 +18,6 @@ class UserRankingResource extends JsonResource
             'name' => $this->name,
             'balance' => $this->balance,
             'true_prediction' => $this->true_prediction,
-            'total_quantity_prediction' => $this->total_quantity_prediction,
             'total_win' => $this->total_win,
         ];
     }

@@ -13,7 +13,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('/v1')->group(function () {
     Route::get('/events', [EventController::class, 'addFootballMatches']);
     Route::get('/events/actual', [EventController::class, 'getActualFootballMatches']);
-//    Route::get('/events/results', [EventController::class, 'updateResults']);
+    Route::get('/events/results', [EventController::class, 'updateResults']);
     Route::post('/bets', [BetController::class, 'makeBet']);
     Route::get('/bets/check', [BetController::class, 'checkBets']);
     Route::get('/user/ranking', [UserController::class, 'getUserRanking']);

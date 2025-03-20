@@ -7,6 +7,7 @@ use App\Models\Bet;
 use App\Models\Event;
 use App\Models\User;
 use App\Repositories\BetRepository;
+use Illuminate\Database\Eloquent\Collection;
 
 class BetService
 {
@@ -44,9 +45,9 @@ class BetService
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
-    public function checkBet(): \Illuminate\Database\Eloquent\Collection
+    public function checkBet(): Collection
     {
         $updatedBets = Bet::where('status', BetStatus::Pending->value)->get();
 

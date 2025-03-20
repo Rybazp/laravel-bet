@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\DTO\FootballMatchDTO;
 use App\Models\Event;
+use Illuminate\Database\Eloquent\Collection;
 
 class EventRepository
 {
@@ -21,5 +22,16 @@ class EventRepository
         return Event::where('title', $dto->title)
                 ->where('date', $dto->date)
                 ->first() !== null;
+    }
+
+    /**
+     * @param string $today
+     * @return Collection
+     */
+    public function getFootballMatchesForToday(string $today): Collection
+    {
+        return Event::where('date', 'like', $today . '%')
+            ->orderBy('date')
+            ->get();
     }
 }

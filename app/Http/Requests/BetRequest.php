@@ -16,7 +16,7 @@ class BetRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
             'user_id.exists' => 'User not found',

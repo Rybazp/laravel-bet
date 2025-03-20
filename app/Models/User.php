@@ -11,6 +11,7 @@ use MongoDB\Laravel\Eloquent\Model;
 
 /**
  * @method static find(mixed $user_id)
+ * @method static orderBy(string $string, string $string1)
  */
 class User extends Model
 {

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Client\SportApiClient;
 use App\DTO\FootballMatchDTO;
+use App\Jobs\ProcessMatchResultJob;
 use App\Models\Event;
 use App\Repositories\EventRepository;
 use Carbon\Carbon;
@@ -34,6 +35,7 @@ class EventService
     public function addFootballMatches(): array
     {
         $createdEvents = [];
+//        $date = Carbon::now()->subDay()->format('Y-m-d');
         $date = Carbon::now()->addDay()->format('Y-m-d');
         $eventsData = $this->sportsApiClient->getCurrentFootballMatches($date);
 
@@ -91,6 +93,8 @@ class EventService
                 ]);
 
                 $updatedEvents[] = $event;
+
+                ProcessMatchResultJob::dispatch($event, $apiResult);
             }
         }
 

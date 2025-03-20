@@ -46,6 +46,11 @@ class SportApiClient
      */
     public function getResultsFootballMatches(array $eventIds): array
     {
-        return $this->request('fixtures', ['ids' => implode(',', $eventIds)]);
+        $params = [
+            'ids' => implode(',', $eventIds),
+            'status' => 'finished',
+        ];
+
+        return $this->request('fixtures', $params);
     }
 }

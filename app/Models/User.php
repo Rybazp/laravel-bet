@@ -11,6 +11,8 @@ use MongoDB\Laravel\Eloquent\Model;
 
 /**
  * @method static find(mixed $user_id)
+ * @method static orderBy(string $string, string $string1)
+ * @method static chunk(int $int, \Closure $param)
  */
 class User extends Model
 {
@@ -22,7 +24,6 @@ class User extends Model
         'name',
         'balance',
         'true_prediction',
-        'total_quantity_prediction',
         'total_win'
     ];
 

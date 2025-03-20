@@ -7,6 +7,7 @@ use MongoDB\Laravel\Eloquent\Model;
 
 /**
  * @method static create(array $betData)
+ * @method static where(string $string, string $value)
  */
 class Bet extends Model
 {
@@ -20,6 +21,6 @@ class Bet extends Model
         'prediction',
         'total_amount',
         'status',
-        'total_win'
+        'total_win',
     ];
 }

@@ -4,28 +4,38 @@ namespace App\Services;
 
 use App\Enums\BetStatus;
 use App\Models\Bet;
+use App\Models\Event;
 use App\Models\User;
+use App\Repositories\BetRepository;
+use Illuminate\Database\Eloquent\Collection;
 
 class BetService
 {
+    public function __construct(private readonly BetRepository $betRepository)
+    {
+    }
+
     /**
      * @param array $betData
-     * @return mixed
-     * @throws \Exception
+     * @return Bet
      */
-    public function createBet(array $betData)
+    public function createBet(array $betData): Bet
     {
         $user = User::find($betData['user_id']);
 
         if ($user->balance < $betData['total_amount']) {
-            throw new \Exception("Not enough balance to bet", 402);
+            throw new \OutOfRangeException('Bet amount exceeds the maximum allowed', 403);
         }
 
-        $betData['status'] = BetStatus::Pending;
-        $bet = Bet::create($betData);
+        if (!in_array($betData['prediction'], ['home', 'away', 'draw'])) {
+            throw new \InvalidArgumentException('Invalid prediction value. Allowed values are: home, away, draw.', 400);
+        }
 
-        if (!$bet->save()) {
-            throw new \Exception("Failed to create bet.", 500);
+        $betData['status'] = BetStatus::Pending->value;
+        $bet = $this->betRepository->create($betData);
+
+        if (!$bet) {
+            throw new \RuntimeException('Failed to create bet.', 500);
         }
 
         $user->balance = $user->balance - $betData['total_amount'];
@@ -34,38 +44,45 @@ class BetService
         return $bet;
     }
 
-//    public function checkBet(array $results)
-//    {
-//        $updatedBets = Bet::whereIn('event_id', array_column($results, 'id'))
-//            ->where('status', 'pending')
-//            ->get();
-//
-//        foreach ($updatedBets as $bet) {
-//            $result = collect($results)->where('id', $bet->event_id);
-//
-//            if ($result) {
-//                $user = $bet->user;
-//                $isWin = false;
-//                $totalWin = 0;
-//
-//                if (($bet->selected_team === 'home' && $result['home_score'] > $result['away_score']) ||
-//                    ($bet->selected_team === 'away' && $result['away_score'] > $result['home_score'])) {
-//
-//                    $isWin = true;
-//                    $totalWin = $bet->total_amount * $bet->odds;
-//                }
-//
-//                $bet->status = $isWin ? 'won' : 'lost';
-//                $bet->total_win = $totalWin;
-//                $bet->save();
-//
-//                if ($isWin) {
-//                    $user->balance += $totalWin;
-//                }
-//                $user->save();
-//            }
-//        }
-//
-//        return $updatedBets;
-//    }
+    /**
+     * @return Collection
+     */
+    public function checkBet(): Collection
+    {
+        $updatedBets = Bet::where('status', BetStatus::Pending->value)->get();
+
+        if ($updatedBets->isEmpty()) {
+            throw new \RuntimeException('No bets with pending status.');
+        }
+
+        foreach ($updatedBets as $bet) {
+            $event = Event::where('_id', $bet->event_id)->first();
+
+            if ($event->result['home'] === null || $event->result['away'] === null) {
+                continue;
+            }
+
+            if (
+                ($bet->prediction == 'home' && $event->result['home'] > $event->result['away']) ||
+                ($bet->prediction == 'away' && $event->result['away'] > $event->result['home']) ||
+                ($bet->prediction == 'draw' && $event->result['home'] == $event->result['away'])
+            ) {
+                $bet->status = BetStatus::Win->value;
+                $bet->total_win = $bet->total_amount * 2;
+                $bet->save();
+
+                $user = User::find($bet->user_id);
+                $winAmount = $bet['total_amount']*2;
+                $user->balance = $user->balance + $winAmount;
+                $user->true_prediction += 1;
+                $user->total_win = $user->total_win + $winAmount;
+                $user->save();
+            } else {
+                $bet->status = BetStatus::Lose->value;
+                $bet->save();
+            }
+        }
+
+        return $updatedBets;
+    }
 }

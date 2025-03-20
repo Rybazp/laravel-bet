@@ -34,8 +34,7 @@ class EventService
     public function addFootballMatches(): array
     {
         $createdEvents = [];
-        $date = Carbon::now()->format('Y-m-d');
-//        $date = Carbon::now()->addDay()->format('Y-m-d');
+        $date = Carbon::now()->addDay()->format('Y-m-d');
         $eventsData = $this->sportsApiClient->getCurrentFootballMatches($date);
 
         if (empty($eventsData)) {
@@ -92,8 +91,6 @@ class EventService
                 ]);
 
                 $updatedEvents[] = $event;
-
-//                ProcessMatchResultJob::dispatch($event, $apiResult);
             }
         }
 

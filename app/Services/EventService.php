@@ -4,11 +4,9 @@ namespace App\Services;
 
 use App\Client\SportApiClient;
 use App\DTO\FootballMatchDTO;
-use App\Models\Event;
 use App\Repositories\EventRepository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cache;
 
 class EventService
@@ -34,7 +32,9 @@ class EventService
     public function addFootballMatches(): array
     {
         $createdEvents = [];
-        $date = Carbon::now()->addDay()->format('Y-m-d');
+
+        $date = Carbon::now()->format('Y-m-d');
+
         $eventsData = $this->sportsApiClient->getCurrentFootballMatches($date);
 
         if (empty($eventsData)) {
@@ -45,7 +45,14 @@ class EventService
             if (isset($event['teams']['home']['name'], $event['teams']['away']['name'], $event['fixture']['date'])) {
                 $dto = FootballMatchDTO::fromArray($event);
 
-                if ($this->eventRepository->eventExists($dto)) {
+                $existingEvent = $this->eventRepository->eventExists($dto);
+
+                if ($existingEvent && $existingEvent->type !== $dto->type->value) {
+                    $existingEvent->update([
+                        'type' => $dto->type->value,
+                        'result' => $dto->result
+                    ]);
+
                     continue;
                 }
 
@@ -60,53 +67,12 @@ class EventService
     }
 
     /**
-     * @return array
+     * @return Collection|\Illuminate\Support\Collection
      */
-    public function updateFootballMatchesResults(): array
+    public function getActualFootballMatches(): Collection|array
     {
-        $events = Event::whereNull('results->home')
-            ->whereNull('results->away')
-            ->get();
+        $today = Carbon::now()->addDay()->format('Y-m-d');
 
-        if ($events->isEmpty()) {
-            throw new ModelNotFoundException('No events to update.');
-        }
-
-        $eventIds = $events->pluck('id')->toArray();
-        $apiResults = $this->sportsApiClient->getResultsFootballMatches($eventIds);
-        $apiResults = collect($apiResults);
-        $updatedEvents = [];
-
-        foreach ($events as $event) {
-            $apiResult = $apiResults->firstWhere('event_id', $event->id);
-
-            if ($apiResult && isset($apiResult['home_result']) && isset($apiResult['away_result'])) {
-                $footballMatchDTO = FootballMatchDTO::fromArray($apiResult);
-
-                $event->update([
-                    'results' => [
-                        'home' => $footballMatchDTO->result['home'],
-                        'away' => $footballMatchDTO->result['away'],
-                    ]
-                ]);
-
-                $updatedEvents[] = $event;
-            }
-        }
-
-        if (empty($updatedEvents)) {
-            throw new \RuntimeException('No events updated with new results.');
-        }
-
-        return $updatedEvents;
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getActualFootballMatches(): Collection
-    {
-        $today = Carbon::tomorrow()->format('Y-m-d');
         $cacheKey = 'today_football_events_' . $today;
         $events = Cache::get($cacheKey);
 
@@ -119,6 +85,8 @@ class EventService
         if ($events->isEmpty()) {
             return collect();
         }
+
+        $events = $events->take(100);
 
         Cache::store('redis')->put($cacheKey, $events, 10);
 

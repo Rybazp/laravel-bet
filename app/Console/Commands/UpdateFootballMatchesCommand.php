@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\EventService;
 
-class UpdateFootballMatches extends Command
+class UpdateFootballMatchesCommand extends Command
 {
     protected $signature = 'update:football-matches';
     protected $description = 'Update football matches';
@@ -22,6 +22,7 @@ class UpdateFootballMatches extends Command
     {
         try {
             $this->eventService->addFootballMatches();
+
             $this->info('Football matches updated successfully!');
         } catch (\Exception $e) {
             $this->error('Error: ' . $e->getMessage());

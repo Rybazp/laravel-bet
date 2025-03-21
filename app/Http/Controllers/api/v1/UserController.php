@@ -7,6 +7,7 @@ use App\Services\UserService;
 use App\Http\Requests\UserRankingRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
 {
@@ -16,22 +17,19 @@ class UserController extends Controller
 
     /**
      * @param UserRankingRequest $request
-     * @return JsonResponse
+     * @return JsonResponse|AnonymousResourceCollection
      */
-    public function getUserRanking(UserRankingRequest $request): JsonResponse
+    public function getUserRanking(UserRankingRequest $request): JsonResponse|AnonymousResourceCollection
     {
         try {
             $filter = $request->query('filter', 'total_win');
             $ranking = $this->userService->getUserRanking($filter);
-            $resourceCollection = UserRankingResource::collection($ranking);
 
-            return response()->json($resourceCollection, Response::HTTP_OK);
+            return UserRankingResource::collection($ranking);
         } catch (\Exception $e) {
-
             return response()->json([
                 'message' => $e->getMessage()
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

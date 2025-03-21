@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BetPrediction;
 use App\Enums\BetStatus;
 use App\Models\Bet;
 use App\Models\Event;
@@ -27,7 +28,7 @@ class BetService
             throw new \OutOfRangeException('Bet amount exceeds the maximum allowed', 403);
         }
 
-        if (!in_array($betData['prediction'], ['home', 'away', 'draw'])) {
+        if (!in_array($betData['prediction'], BetPrediction::isValid(), true)) {
             throw new \InvalidArgumentException('Invalid prediction value. Allowed values are: home, away, draw.', 400);
         }
 
@@ -62,11 +63,10 @@ class BetService
                 continue;
             }
 
-            if (
-                ($bet->prediction == 'home' && $event->result['home'] > $event->result['away']) ||
-                ($bet->prediction == 'away' && $event->result['away'] > $event->result['home']) ||
-                ($bet->prediction == 'draw' && $event->result['home'] == $event->result['away'])
-            ) {
+            $prediction = BetPrediction::from($bet->prediction);
+            $betStatus = $prediction->evaluate($event->result);
+
+            if ($betStatus === BetStatus::Win) {
                 $bet->status = BetStatus::Win->value;
                 $bet->total_win = $bet->total_amount * 2;
                 $bet->save();

@@ -16,7 +16,6 @@ class UserRankingResource extends JsonResource
     {
         return [
             'name' => $this->name,
-            'balance' => $this->balance,
             'true_prediction' => $this->true_prediction,
             'total_win' => $this->total_win,
         ];

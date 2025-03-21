@@ -6,13 +6,13 @@ use Illuminate\Support\Facades\Http;
 
 class SportApiClient
 {
-    private string $baseUrl;
-    private string $apiKey;
+    private string $apiFootballUrl;
+    private string $apiFootballKey;
 
     public function __construct()
     {
-        $this->baseUrl = env('FOOTBALL_API_URL');
-        $this->apiKey = env('FOOTBALL_API_KEY');
+        $this->apiFootballUrl = env('FOOTBALL_API_URL');
+        $this->apiFootballKey = env('FOOTBALL_API_KEY');
     }
 
     /**
@@ -20,13 +20,13 @@ class SportApiClient
      * @param array $params
      * @return array
      */
-    private function request(string $url, array $params = []): array
+    private function getApiFootballRequest(string $url, array $params = []): array
     {
         $headers = [
-            'X-RapidAPI-Key' => $this->apiKey,
+            'X-RapidAPI-Key' => $this->apiFootballKey,
         ];
 
-        $response = Http::withHeaders($headers)->get($this->baseUrl . $url, $params);
+        $response = Http::withHeaders($headers)->get($this->apiFootballUrl . $url, $params);
 
         return $response->successful() ? $response->json()['response'] ?? [] : [];
     }
@@ -37,20 +37,19 @@ class SportApiClient
      */
     public function getCurrentFootballMatches(string $date): array
     {
-        return $this->request('fixtures', ['date' => $date]);
+        return $this->getApiFootballRequest('fixtures', ['date' => $date]);
     }
 
     /**
-     * @param array $eventIds
+     * @param string $title
      * @return array
      */
-    public function getResultsFootballMatches(array $eventIds): array
+    public function getResultsFootballMatches(string $title): array
     {
         $params = [
-            'ids' => implode(',', $eventIds),
-            'status' => 'finished',
+            'title' => $title,
         ];
 
-        return $this->request('fixtures', $params);
+        return $this->getApiFootballRequest('fixtures', $params);
     }
 }

@@ -2,38 +2,34 @@
 
 namespace App\DTO;
 
+use App\Enums\EventType;
 use Carbon\Carbon;
 
 class FootballMatchDTO
 {
     public function __construct(
-        public string $title,
-        public string $type_of_sports,
-        public string $participants,
-        public string $date,
-        public array $result
+        public readonly string $title,
+        public readonly string $type_of_sports,
+        public readonly string $participants,
+        public readonly string $date,
+        public readonly EventType $type,
+        public readonly array $result
     ) {
     }
 
     public static function fromArray(array $data): self
     {
-        $dto = new self(
-            '',
-            '',
-            '',
-            '',
-            []
+        return new self(
+            sprintf('%s vs %s', $data['teams']['home']['name'], $data['teams']['away']['name']),
+            'Football',
+            sprintf('%s vs %s', $data['teams']['home']['name'], $data['teams']['away']['name']),
+            Carbon::parse($data['fixture']['date'])->format('Y-m-d H:i'),
+            EventType::getTypeFromStatus($data['fixture']['status']['long']),
+            [
+                'home' => $data['goals']['home'] ?? null,
+                'away' => $data['goals']['away'] ?? null
+            ]
         );
-        $dto->title = sprintf('%s vs %s', $data['teams']['home']['name'], $data['teams']['away']['name']);
-        $dto->type_of_sports = 'Football';
-        $dto->participants = $dto->title;
-        $dto->date = Carbon::parse($data['fixture']['date'])->format('Y-m-d H:i');
-        $dto->result = [
-            'home' => $data['score']['home'] ?? null,
-            'away' => $data['score']['away'] ?? null
-        ];
-
-        return $dto;
     }
 
     /**
@@ -46,6 +42,7 @@ class FootballMatchDTO
             'type_of_sports' => $this->type_of_sports,
             'participants' => $this->participants,
             'date' => $this->date,
+            'type' => $this->type->value,
             'result' => $this->result,
         ];
     }

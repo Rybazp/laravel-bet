@@ -33,7 +33,7 @@ class EventService
     {
         $createdEvents = [];
 
-        $date = Carbon::now()->format('Y-m-d');
+        $date = Carbon::now()->addDay()->format('Y-m-d');
 
         $eventsData = $this->sportsApiClient->getCurrentFootballMatches($date);
 

@@ -6,6 +6,7 @@ use App\Http\Requests\BetRequest;
 use App\Http\Resources\BetResource;
 use App\Services\BetService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class BetController extends Controller
@@ -19,17 +20,16 @@ class BetController extends Controller
 
     /**
      * @param BetRequest $request
-     * @return JsonResponse
+     * @return JsonResponse|BetResource
      */
-    public function makeBet(BetRequest $request): JsonResponse
+    public function makeBet(BetRequest $request): JsonResponse|BetResource
     {
         $betData = $request->validated();
 
         try {
             $bet = $this->betService->createBet($betData);
-            $betResource = BetResource::make($bet);
 
-            return response()->json($betResource, Response::HTTP_CREATED);
+            return BetResource::make($bet);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -38,17 +38,15 @@ class BetController extends Controller
     }
 
     /**
-     * @return JsonResponse
+     * @return JsonResponse|AnonymousResourceCollection
      */
-    public function checkBets(): JsonResponse
+    public function checkBets(): JsonResponse|AnonymousResourceCollection
     {
         try {
             $updatedBets = $this->betService->checkBet();
-            $betResource = BetResource::collection($updatedBets);
 
-            return response()->json($betResource, Response::HTTP_OK);
+            return BetResource::collection($updatedBets);
         } catch (\Exception $e) {
-
             return response()->json([
                 'message' => $e->getMessage()
             ], Response::HTTP_BAD_REQUEST);

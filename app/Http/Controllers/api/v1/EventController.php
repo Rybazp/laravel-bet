@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api\v1;
 use App\Http\Resources\EventResource;
 use App\Services\EventService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class EventController extends Controller
@@ -17,15 +18,14 @@ class EventController extends Controller
     }
 
     /**
-     * @return JsonResponse
+     * @return JsonResponse|AnonymousResourceCollection
      */
-    public function addFootballMatches(): JsonResponse
+    public function addFootballMatches(): JsonResponse|AnonymousResourceCollection
     {
         try {
             $createdEvents = $this->eventService->addFootballMatches();
-            $resourceCollection = EventResource::collection($createdEvents);
 
-            return response()->json($resourceCollection, Response::HTTP_CREATED);
+            return EventResource::collection($createdEvents);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -34,33 +34,18 @@ class EventController extends Controller
     }
 
     /**
-     * @return JsonResponse
+     * @return JsonResponse|AnonymousResourceCollection
      */
-    public function getActualFootballMatches(): JsonResponse
+    public function getActualFootballMatches(): JsonResponse|AnonymousResourceCollection
     {
         try {
             $events = $this->eventService->getActualFootballMatches();
-            $resourceCollection = EventResource::collection($events);
 
-            return response()->json($resourceCollection, Response::HTTP_OK);
+            return EventResource::collection($events);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ], Response::HTTP_BAD_REQUEST);
-        }
-    }
-
-    public function updateResults()
-    {
-        try {
-            $result = $this->eventService->updateFootballMatchesResults();
-            $resourceCollection = EventResource::collection($result);
-
-            return response()->json($resourceCollection, Response::HTTP_OK);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

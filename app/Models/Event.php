@@ -6,10 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
 
 /**
- * @method static create(array $array)
- * @method static where(string $string, $null)
- * @method static find($event_id)
- * @method static whereNull(string $string)
+ * @method static where(string $string, $event_id)
  */
 class Event extends Model
 {
@@ -22,6 +19,7 @@ class Event extends Model
         'type_of_sports',
         'participants',
         'date',
+        'type',
         'result'
     ];
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository
 {
-    protected int $limit = 10;
+    private int $limit = 10;
 
     /**
      * @return Collection

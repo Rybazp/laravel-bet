@@ -12,7 +12,6 @@ class UserService
     {
     }
 
-
     /**
      * @param string $filter
      * @return Collection
@@ -23,13 +22,11 @@ class UserService
         $ranking = Cache::get($cacheKey);
 
         if (!$ranking) {
-            if ($filter === 'total_win') {
-                $ranking = $this->userRepository->getRankingByTotalWin();
-            } elseif ($filter === 'total_quantity_prediction') {
-                $ranking = $this->userRepository->getRankingByTotalQuantityPrediction();
-            } else {
-                return collect();
-            }
+            $ranking = match ($filter) {
+                'total_win' => $this->userRepository->getRankingByTotalWin(),
+                'total_quantity_prediction' => $this->userRepository->getRankingByTotalQuantityPrediction(),
+                default => collect(),
+            };
 
             Cache::store('redis')->put($cacheKey, $ranking, 10);
         }

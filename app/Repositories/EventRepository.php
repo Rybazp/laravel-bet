@@ -17,13 +17,6 @@ class EventRepository
         return Event::create($data);
     }
 
-    public function eventExists(FootballMatchDTO $dto): bool
-    {
-        return Event::where('title', $dto->title)
-                ->where('date', $dto->date)
-                ->first() !== null;
-    }
-
     /**
      * @param string $today
      * @return Collection
@@ -33,5 +26,16 @@ class EventRepository
         return Event::where('date', 'like', $today . '%')
             ->orderBy('date')
             ->get();
+    }
+
+    /**
+     * @param FootballMatchDTO $dto
+     * @return Event
+     */
+    public function eventExists(FootballMatchDTO $dto): Event
+    {
+        return Event::where('title', $dto->title)
+            ->where('date', $dto->date)
+            ->first();
     }
 }

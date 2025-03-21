@@ -2,16 +2,16 @@
 
 namespace App\Console;
 
-use App\Console\Commands\UpdateFootballMatches;
-use App\Console\Commands\UpdateFootballResults;
+use App\Console\Commands\UpdateFootballMatchesCommand;
+use App\Console\Commands\UpdateFootballResultsCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        UpdateFootballMatches::class,
-        UpdateFootballResults::class,
+        UpdateFootballMatchesCommand::class,
+        UpdateFootballResultsCommand::class,
     ];
 
     /**
